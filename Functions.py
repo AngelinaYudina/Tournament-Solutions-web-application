@@ -1,7 +1,6 @@
+import sys
 import numpy as np
 from pulp import LpMaximize, LpProblem, lpDot, LpVariable
-from copy import deepcopy
-import sys
 
 EPS = sys.float_info.epsilon
 
@@ -18,6 +17,11 @@ def DLH(G):
         L.append(set(j for j in range(len(G)) if G[i][j] == 1))
         H.append(set(j for j in range(len(G)) if G[i][j] == 0 and i != j))
     return {"D": D, "L": L, "H": H}
+
+
+def G_reduction(G, el_to_del):
+    G = np.delete(G, el_to_del, 0)
+    return np.delete(G, el_to_del, 1)
 
 
 def CO_score_2(G):
@@ -111,9 +115,8 @@ def E(G):
         if i <= len(G) - 1:
             A_i = [0, *row, *to_add]
         else:
-            temp = deepcopy(row)
-            temp[i - len(G)] -= 1
-            A_i = [1, *temp, *to_add]
+            row[i - len(G)] -= 1
+            A_i = [1, *row, *to_add]
         A.append(A_i)
         i += 1
     # Вектор коэффициентов правой части
@@ -139,9 +142,57 @@ def E(G):
     return res
 
 
-def MC_McK():
-    pass
+def MC_McK(G):
+    B = E(G)
+    all_alt = set([x for x in range(len(G))])
+    while True:
+        temp_res = set()
+        for el in all_alt - B:
+            el_to_del = list(all_alt - B.union({el}))
+            UC_McK_set = UC_McK(G_reduction(G, el_to_del))
+            el_to_stay = list(B.union({el}))
+            el_to_stay.sort()
+            UC_new = set()
+            for ind in UC_McK_set:
+                UC_new.add(el_to_stay[ind])
+            if UC_new.intersection({el}) != set():
+                temp_res.add(el)
+        if len(temp_res) == 0:
+            return B
+        else:
+            el_to_del = list(all_alt - temp_res)
+            el_to_stay = list(temp_res)
+            el_to_stay.sort()
+            A_new = E(G_reduction(G, el_to_del))
+            to_add = set()
+            for ind in A_new:
+                to_add.add(el_to_stay[ind])
+            B = B.union(to_add)
 
 
-def MC_D():
-    pass
+def MC_D(G):
+    B = E(G)
+    all_alt = set([x for x in range(len(G))])
+    while True:
+        temp_res = set()
+        for el in all_alt - B:
+            el_to_del = list(all_alt - B.union({el}))
+            UC_D_set = UC_D(G_reduction(G, el_to_del))
+            el_to_stay = list(B.union({el}))
+            el_to_stay.sort()
+            UC_new = set()
+            for ind in UC_D_set:
+                UC_new.add(el_to_stay[ind])
+            if UC_new.intersection({el}) != set():
+                temp_res.add(el)
+        if len(temp_res) == 0:
+            return B
+        else:
+            el_to_del = list(all_alt - temp_res)
+            el_to_stay = list(temp_res)
+            el_to_stay.sort()
+            A_new = E(G_reduction(G, el_to_del))
+            to_add = set()
+            for ind in A_new:
+                to_add.add(el_to_stay[ind])
+            B = B.union(to_add)
