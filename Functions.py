@@ -196,3 +196,11 @@ def MC_D(G):
             for ind in A_new:
                 to_add.add(el_to_stay[ind])
             B = B.union(to_add)
+
+
+def sorting(G, func):
+    if func in [CO_score_2, CO_score_3]:
+        score = func(G)
+        pass
+    else:
+        pass
