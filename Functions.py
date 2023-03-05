@@ -24,14 +24,14 @@ def G_reduction(G, el_to_del):
     return np.delete(G, el_to_del, 1)
 
 
-def CO_score_2(G):
+def CO_2(G):
     # s2(x) = |L(x)|
     L = DLH(G)['L']
     s2_list = list(map(len, L))
     return s2_list
 
 
-def CO_score_3(G):
+def CO_3(G):
     # s3(x) = |X| - |D(x)|
     card_X = len(G)
     D = DLH(G)['D']
@@ -92,7 +92,7 @@ def UC_D(G):
 def ES(G):
     # x in ES <=> exists y in UC_F: xPy or x in UC_F
     res = set()
-    D = DLH(G)
+    D = DLH(G)["D"]
     UC_F_set = UC_F(G)
     for y in UC_F_set:
         res = res.union(D[y])
@@ -199,8 +199,84 @@ def MC_D(G):
 
 
 def sorting(G, func):
-    if func in [CO_score_2, CO_score_3]:
+    rank_all = []
+    N = len(G)
+    if func in [CO_2, CO_3]:
+        index_all = [x for x in range(len(G))]
         score = func(G)
-        pass
+        dict_temp = dict(zip(index_all, score))
+        keys_sorted = sorted(dict_temp, key=dict_temp.get, reverse=True)
+        value_max = dict_temp[keys_sorted[0]]
+        rank_temp = []
+        while value_max != -1:
+            for key in keys_sorted:
+                value_now = dict_temp[key]
+                if value_now == value_max:
+                    dict_temp[key] = -1
+                    rank_temp.append(key)
+            rank_all.append(rank_temp)
+            rank_temp = []
+            keys_sorted = sorted(dict_temp, key=dict_temp.get, reverse=True)
+            value_max = dict_temp[keys_sorted[0]]
     else:
-        pass
+        index_left = [x for x in range(len(G))]
+        while True:
+            if len(G) == 0:
+                break
+            rank_temp = []
+            res_temp = func(G)
+            for el_ind in res_temp:
+                rank_temp.append(index_left[el_ind])
+            index_left = [index_left[i] for i in range(len(index_left)) if i not in res_temp]
+            G = G_reduction(G, list(res_temp))
+            rank_all.append(rank_temp)
+    place = 1
+    ranking = [0] * N
+    for place_list in rank_all:
+        for i in place_list:
+            ranking[i] = place
+        place += 1
+    return ranking
+
+
+def init_ranking(df):
+    rankings = list(df.columns)
+    for ranking in rankings:
+        res = np.zeros(len(df))
+        place = 1
+        maximum = df[ranking].max()
+        while maximum != -100:
+            ind_list = np.where(df[ranking] == maximum)
+            for ind in ind_list:
+                df[ranking][ind] = -100
+                res[ind] = place
+            place += 1
+            maximum = df[ranking].max()
+        df[ranking] = res
+    df = df.astype("int")
+    return df
+
+
+def M_T_generator(df):
+    values = df.values
+    M = np.zeros((values.shape[0], values.shape[0]))
+    T = np.zeros((values.shape[0], values.shape[0]))
+    num = 0
+    for i in range(values.shape[0]):
+        for j in range(values.shape[0]):
+            counter = 0
+            for k in range(1, values.shape[1]):  # идем по ранжированиям
+                if values[i][k] < values[j][k]:
+                    counter += 1
+                elif values[i][k] > values[j][k]:
+                    counter -= 1
+            if np.sign(counter) == 1:
+                M[i][j] = 1
+            elif np.sign(counter) == 0 and i != j:
+                T[i][j] = 1
+                num += 1
+    return M.astype(np.int64), T.astype(np.int64), num // 2
+
+
+def game_creator(M):
+    return M - M.T
