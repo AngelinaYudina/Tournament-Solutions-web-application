@@ -270,8 +270,8 @@ def E(G: np.ndarray) -> set[int]:
     A.append(A_0)
     i = 0
     for row in np.vstack((G, G)):
-        to_add = [0] * (len(G[0]) * 2 + 2)
-        to_add[i + 2] = 1
+        to_add = [0] * (len(G[0]) * 2 + 1)
+        to_add[i + 1] = 1
         if i <= len(G) - 1:
             A_i = [0, *row, *to_add]
         else:
