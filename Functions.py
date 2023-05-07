@@ -87,7 +87,7 @@ def DLH(G: np.ndarray) -> dict[str, list[set[int]]]:
 
     Верхний срез альтернативы x: D(x) = {y in X | yPx}
 
-    Нижный срез альтернативы x: L(x) = {y in X | xPy}
+    Нижний срез альтернативы x: L(x) = {y in X | xPy}
 
     Горизонт альтернативы x: H(x) = {y in X | (not xPy) and (not yPx) and (x != y)}
     :param G: матрица турнирной игры
@@ -263,15 +263,15 @@ def E(G: np.ndarray) -> set[int]:
     """
     list_ind = [i for i in range(len(G))]
     # Вектор коэффициентов целевой функции
-    z = [1, *[0 for _ in range(len(G))], -1000, *[0] * (len(G[0]) * 2)]
+    z = [1, *[0 for _ in range(len(G))], -1000, -1000, *[0] * (len(G[0]) * 2)]
     # Матрица коэффициентов левой части
     A = []
-    A_0 = [0, *[1 for _ in range(len(G))], 1, *[0 for _ in range(len(G) * 2)]]
+    A_0 = [0, *[1 for _ in range(len(G))], 1, -1, *[0 for _ in range(len(G) * 2)]]
     A.append(A_0)
     i = 0
     for row in np.vstack((G, G)):
-        to_add = [0] * (len(G[0]) * 2 + 1)
-        to_add[i + 1] = 1
+        to_add = [0] * (len(G[0]) * 2 + 2)
+        to_add[i + 2] = 1
         if i <= len(G) - 1:
             A_i = [0, *row, *to_add]
         else:
@@ -280,7 +280,7 @@ def E(G: np.ndarray) -> set[int]:
         A.append(A_i)
         i += 1
     # Вектор коэффициентов правой части
-    b = [1, *[0 for _ in range(len(A) - 1)]]
+    b = [1, *[0 for _ in range(len(A))]]
     # Построение модели
     E = LpProblem(name="E", sense=LpMaximize)
     # Переменные задачи
@@ -444,7 +444,7 @@ def sorting(G: np.ndarray, func: Callable[[np.ndarray], Union[set[int], list[int
 def custom_format(writer: ExcelWriter, mode: str, rotation: int = 0) -> ExcelWriter:
     """
     Создает шаблон для форматирования чисел и заголовков.
-    :param writer: объект, записывающий данные на лист Excel (с исходным форматированнием)
+    :param writer: объект, записывающий данные на лист Excel (с исходным форматированием)
     :param mode: тип форматируемых значений. "base" - базовый, "header_col" - заголовок (для столбцов),
     "header_row" - заголовок (для строк)
     :param rotation: угол поворота текста (в градусах) (значение по умолчанию: 0)

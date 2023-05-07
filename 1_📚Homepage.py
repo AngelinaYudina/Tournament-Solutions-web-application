@@ -114,7 +114,7 @@ if file is not None:
     st.write("Ранжирование ранжирований")
     final_ranking = final_ranking.set_index("Ранг")
     st.dataframe(final_ranking)
-    # Подготовка файла с результати работы программы
+    # Подготовка файла с результатом работы программы
     st.write("Все результаты в одном файле:")
     pandas.io.formats.excel.ExcelFormatter.header_style = None   # Разрешение на форматирование индексов
     with pd.ExcelWriter("Results.xlsx", engine="xlsxwriter") as writer:
