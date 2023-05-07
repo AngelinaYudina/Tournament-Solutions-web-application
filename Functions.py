@@ -263,10 +263,10 @@ def E(G: np.ndarray) -> set[int]:
     """
     list_ind = [i for i in range(len(G))]
     # Вектор коэффициентов целевой функции
-    z = [1, *[0 for _ in range(len(G))], -1000, -1000, *[0] * (len(G[0]) * 2)]
+    z = [1, *[0 for _ in range(len(G))], -1000, *[0] * (len(G[0]) * 2)]
     # Матрица коэффициентов левой части
     A = []
-    A_0 = [0, *[1 for _ in range(len(G))], 1, -1, *[0 for _ in range(len(G) * 2)]]
+    A_0 = [0, *[1 for _ in range(len(G))], 1, *[0 for _ in range(len(G) * 2)]]
     A.append(A_0)
     i = 0
     for row in np.vstack((G, G)):
@@ -280,7 +280,7 @@ def E(G: np.ndarray) -> set[int]:
         A.append(A_i)
         i += 1
     # Вектор коэффициентов правой части
-    b = [1, *[0 for _ in range(len(A))]]
+    b = [1, *[0 for _ in range(len(A) - 1)]]
     # Построение модели
     E = LpProblem(name="E", sense=LpMaximize)
     # Переменные задачи
