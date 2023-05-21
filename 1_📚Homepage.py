@@ -101,7 +101,7 @@ if file is not None:
     pos = [x + 1 for x in range(len(ind))]
     res_sorted = res.sort_values(by="Copeland score s2", ascending=False)
     ind_ranked = res_sorted.index
-    final_ranking = pd.DataFrame(ind_ranked, columns=["Метод"], index=pos)
+    final_ranking = pd.DataFrame(ind_ranked, columns=["Method"], index=pos)
     rank = []
     counter = 1
     value_prev = res_sorted["Copeland score s2"].values.max()
@@ -110,9 +110,9 @@ if file is not None:
             counter += 1
         rank.append(counter)
         value_prev = value
-    final_ranking["Ранг"] = rank
+    final_ranking["Rank"] = rank
     st.write("Ранжирование ранжирований")
-    final_ranking = final_ranking.set_index("Ранг")
+    final_ranking = final_ranking.set_index("Rank")
     st.dataframe(final_ranking)
     # Подготовка файла с результатом работы программы
     st.write("Все результаты в одном файле:")
