@@ -1,6 +1,7 @@
 import sys
 from typing import Callable, Union
 import numpy as np
+import streamlit
 from pandas.io.excel._xlsxwriter import ExcelWriter
 import pandas as pd
 from pulp import LpMaximize, LpProblem, lpDot, LpVariable
@@ -394,9 +395,21 @@ def MC_D(G: np.ndarray) -> set[int]:
             B = B.union(to_add)
 
 
-def sorting(G: np.ndarray, func: Callable[[np.ndarray], Union[set[int], list[int]]]) -> list[int]:
+def S_R(G, uc):
+    to_add = set()
+    for el in uc:
+        domin_set = DLH(G)["D"][el]
+        eq_set = DLH(G)["H"][el]
+        to_add = to_add.union(domin_set)
+        to_add = to_add.union(eq_set)
+    res = uc.union(to_add)
+    return res
+
+
+def sorting(G: np.ndarray, func: Callable[[np.ndarray], Union[set[int], list[int]]], version=None) -> list[int]:
     """
     Производит сортировку альтернатив из предъявления по правилу, заданному функцией func.
+    :param version: версия UC (для S_R)
     :param G: матрица турнирной игры
     :param func: турнирное решение
     :return: ранжировка, полученная путем сортировки альтернатив заданным турнирным решением
@@ -426,7 +439,10 @@ def sorting(G: np.ndarray, func: Callable[[np.ndarray], Union[set[int], list[int
             if len(G) == 0:
                 break
             rank_temp = []
-            res_temp = func(G)
+            if func == S_R:
+                res_temp = func(G, uc=version(G))
+            else:
+                res_temp = func(G)
             for el_ind in res_temp:
                 rank_temp.append(index_left[el_ind])
             index_left = [index_left[i] for i in range(len(index_left)) if i not in res_temp]

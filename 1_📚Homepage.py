@@ -5,7 +5,7 @@ import streamlit_ext as ste   # Позволяет скачивать файлы
 import pandas as pd
 import pandas.io.formats.excel
 from Functions import init_ranking, M_T_generator, game_creator, sorting, CO_2, CO_3, UC_M, ES, E, MC_McK, MC_D, \
-    custom_format
+    custom_format, UC_F, UC_McK, S_R
 
 st.set_page_config(
     page_title="Bibliometric IS",
@@ -58,12 +58,20 @@ if file is not None:
     st.write(f"Количество журналов = {df.shape[0]}. Количество ничьих = {counter}. Исходные ранжирования: "
              f"{list(df.columns)}")
     # Построение ранжирований сортировкой, основанной на различных турнирных решениях
-    tournament_solutions = [CO_2, CO_3, UC_M, ES, E, MC_McK, MC_D]
+    tournament_solutions = [CO_2, CO_3, UC_M, ES, E, MC_McK, MC_D, S_R]
     sol_names = ["Copeland rule (2 v.)", "Copeland rule (3 v.)", "sorting by UC_M", "sorting by ES", "sorting by E",
                  "sorting by MC_McK", "sorting by MC_D"]
     for i in range(len(tournament_solutions)):
-        ranking = sorting(G, tournament_solutions[i])
-        rankings_all[sol_names[i]] = ranking
+        if tournament_solutions[i] == S_R:
+            ranking = sorting(G, tournament_solutions[i], version=UC_M)
+            rankings_all["sorting by S^R_M"] = ranking
+            ranking = sorting(G, tournament_solutions[i], version=UC_F)
+            rankings_all["sorting by S^R_F"] = ranking
+            ranking = sorting(G, tournament_solutions[i], version=UC_McK)
+            rankings_all["sorting by S^R_McK"] = ranking
+        else:
+            ranking = sorting(G, tournament_solutions[i])
+            rankings_all[sol_names[i]] = ranking
     st.write("Ранжирования журналов")
     st.dataframe(rankings_all)
     # Расчет коэффициента ранговой корреляции τ_b Кендалла
